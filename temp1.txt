@@ -6,154 +6,191 @@ Choose any domain and... build an application.
 Build an Al agent that can understand a goal, break it into steps, 
 use tools, and complete tasks autonomously with minimal human input. 
 Choose any domain and... build an application.
-// 2nd push
+// 3nd push
 <!DOCTYPE html>
 <html lang="en">
-<head> 
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hackathon PPA</title>
+    <title>Hackathon PPA - Dark Mode</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        /* --- STYLES --- */
+        /* --- DARK THEME STYLES --- */
         :root {
-            --primary-color: #2563eb; /* Strong Tech Blue */
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
+            --bg-color: #0f172a;       /* Deep Midnight Blue */
+            --card-bg: #1e293b;        /* Lighter Blue-Grey */
+            --accent-color: #38bdf8;   /* Neon Cyan */
+            --text-main: #f1f5f9;      /* White-ish */
+            --text-muted: #94a3b8;     /* Grey */
+            --sidebar-width: 260px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', Roboto, sans-serif; }
-        body { background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; height: 100vh; color: var(--text-main); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; height: 100vh; overflow-x: hidden; }
 
-        /* Auth Container */
-        .auth-container { position: absolute; top: 25px; right: 25px; }
+        /* --- NEW SIDEBAR STYLES --- */
+        .menu-toggle {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: transparent;
+            border: 1px solid #334155;
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 2000; /* Ensure it stays above everything */
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .menu-toggle:hover { background: var(--card-bg); border-color: var(--accent-color); }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background-color: var(--card-bg);
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            padding-top: 90px; /* Space for the button */
+            padding-left: 20px;
+            padding-right: 20px;
+            gap: 15px;
+            transform: translateX(-100%); /* Hidden by default */
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1500;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+        }
+
+        .sidebar.open {
+            transform: translateX(0); /* Slide in */
+        }
+
+        .sidebar-item {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-color);
+            border-color: rgba(56, 189, 248, 0.2);
+        }
+
+        /* --- EXISTING STYLES --- */
+
+        /* Auth Button */
+        .auth-container { position: absolute; top: 25px; right: 25px; z-index: 1000; }
         
         .google-btn { 
-            background: var(--card-bg); 
-            border: 1px solid #e2e8f0; 
-            padding: 10px 24px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: var(--card-bg); color: var(--text-main);
+            border: 1px solid #334155; padding: 10px 24px; border-radius: 8px; 
+            cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 500;
             transition: all 0.2s;
         }
-        .google-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .google-btn:hover { border-color: var(--accent-color); }
         
-        .user-info { display: none; align-items: center; gap: 12px; background: white; padding: 6px 12px; border-radius: 50px; border: 1px solid #e2e8f0; }
-        .user-avatar { width: 32px; height: 32px; border-radius: 50%; }
-        .user-name { font-weight: 600; font-size: 14px; }
+        .user-info { display: none; align-items: center; gap: 12px; background: var(--card-bg); padding: 6px 16px; border-radius: 50px; border: 1px solid #334155; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent-color); }
 
         /* Main Center Container */
-        .assistant-container { 
-            margin-top: 25vh; 
-            width: 100%; 
-            max-width: 650px; 
-            padding: 20px; 
-            text-align: center; 
-        }
+        .assistant-container { margin-top: 25vh; width: 100%; max-width: 650px; padding: 20px; text-align: center; transition: margin-left 0.3s; }
 
-        /* Branding */
         .brand-badge {
-            background: #dbeafe; 
-            color: var(--primary-color);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            display: inline-block;
+            background: rgba(56, 189, 248, 0.1); color: var(--accent-color); border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: inline-block;
         }
 
-        .main-title { margin-bottom: 10px; font-size: 3rem; font-weight: 800; letter-spacing: -1px; color: #0f172a; }
+        .main-title { margin-bottom: 10px; font-size: 3rem; font-weight: 800; letter-spacing: -1px; background: -webkit-linear-gradient(#fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
         .subtitle { margin-bottom: 40px; color: var(--text-muted); font-size: 1.2rem; }
         
         /* Search Bar */
         .search-wrapper { 
-            position: relative; 
-            width: 100%; 
-            background: var(--card-bg); 
-            border-radius: 16px; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
-            display: flex; 
-            align-items: center; 
-            padding: 8px 12px; 
-            border: 1px solid #e2e8f0;
-            transition: ring 0.3s;
+            position: relative; width: 100%; background: var(--card-bg); 
+            border-radius: 16px; display: flex; align-items: center; padding: 8px 12px; 
+            border: 1px solid #334155; box-shadow: 0 0 20px rgba(56, 189, 248, 0.05);
         }
+        .search-wrapper:focus-within { border-color: var(--accent-color); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
 
-        .search-wrapper:focus-within { border-color: var(--primary-color); ring: 2px solid var(--primary-color); }
-
-        .search-icon { padding: 15px; color: #94a3b8; }
-        .search-input { border: none; outline: none; width: 100%; padding: 16px 0; font-size: 18px; color: var(--text-main); }
+        .search-icon { padding: 15px; color: var(--text-muted); }
+        .search-input { border: none; outline: none; width: 100%; padding: 16px 0; font-size: 18px; color: white; background: transparent; }
         
         .action-btn { 
-            background-color: var(--primary-color); 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            width: 50px; 
-            height: 50px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            transition: background 0.2s;
+            background-color: var(--accent-color); color: #0f172a; border: none; 
+            border-radius: 12px; width: 50px; height: 50px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; font-weight: bold;
         }
-        .action-btn:hover { background-color: #1d4ed8; }
+        .action-btn:hover { background-color: #7dd3fc; }
 
         /* Result Card */
         #result-card {
-            display: none; 
-            margin-top: 30px;
-            background: white;
-            padding: 24px;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            text-align: left;
+            display: none; margin-top: 30px; background: var(--card-bg); padding: 24px;
+            border-radius: 16px; border: 1px solid #334155; text-align: left;
             animation: fadeIn 0.4s ease-out;
         }
         
-        .meet-link { 
-            color: var(--primary-color); 
-            text-decoration: none; 
-            font-weight: 600; 
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .meet-link:hover { text-decoration: underline; }
+        .meet-link { color: var(--accent-color); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-top: 15px; font-size: 1.1rem; padding: 10px; background: rgba(56, 189, 248, 0.1); border-radius: 8px; }
+        .meet-link:hover { background: rgba(56, 189, 248, 0.2); }
+
+        .error-msg { color: #f87171; font-weight: bold; margin-top: 10px; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
+    <button class="menu-toggle" onclick="toggleSidebar()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="1"></circle>
+            <circle cx="12" cy="5" r="1"></circle>
+            <circle cx="12" cy="19" r="1"></circle>
+        </svg>
+    </button>
+
+    <div id="sidebar" class="sidebar">
+        <a href="https://meet.google.com" target="_blank" class="sidebar-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            Google Meet
+        </a>
+        <a href="https://calendar.google.com" target="_blank" class="sidebar-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Google Calendar
+        </a>
+        <a href="#" onclick="processCommand(); toggleSidebar(); return false;" class="sidebar-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Meeting
+        </a>
+    </div>
+
     <div class="auth-container">
         <button id="authorize_button" class="google-btn" onclick="handleAuth()">
             <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18" alt="G">
-            Sign in with Google
+            Sign In
         </button>
         <div id="content_section" class="user-info">
             <img id="user_image" class="user-avatar" src="" alt="User">
-            <span id="user_name" class="user-name"></span>
+            <span id="user_name"></span>
         </div>
     </div>
 
     <div class="assistant-container">
         <div class="brand-badge">Hackathon PPA</div>
         <h1 class="main-title">Productivity Assistant</h1>
-        <p class="subtitle" id="greeting_text">Your personal AI workspace companion.</p>
+        <p class="subtitle" id="greeting_text">System Ready. Awaiting Command.</p>
         
         <div class="search-wrapper">
             <div class="search-icon">
@@ -166,16 +203,33 @@ Choose any domain and... build an application.
         </div>
 
         <div id="result-card">
-            <p id="result-text"></p>
+            <div id="result-content"></div>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        // TODO: PASTE YOUR CLIENT ID HERE
-        const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com';
-        const SCOPES = 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.profile';
+        // --- SIDEBAR LOGIC ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
 
+        // Close sidebar if clicking outside of it (Optional User Experience improvement)
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.menu-toggle');
+            
+            // If sidebar is open AND click is NOT on sidebar AND click is NOT on toggle button
+            if (sidebar.classList.contains('open') && 
+                !sidebar.contains(event.target) && 
+                !toggle.contains(event.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // --- GOOGLE AUTH & API LOGIC ---
+        const CLIENT_ID = '150745998816-ndet54lnu9qo15mugethd1k6874knkun.apps.googleusercontent.com'; 
+        const SCOPES = 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.profile';
         let tokenClient;
         let accessToken = null;
 
@@ -190,7 +244,9 @@ Choose any domain and... build an application.
             });
         }
 
-        function handleAuth() { tokenClient.requestAccessToken(); }
+        function handleAuth() {
+            tokenClient.requestAccessToken();
+        }
 
         function onLoginSuccess() {
             document.getElementById('authorize_button').style.display = 'none';
@@ -201,35 +257,37 @@ Choose any domain and... build an application.
             }).then(res => res.json()).then(data => {
                 document.getElementById('user_name').innerText = data.given_name;
                 document.getElementById('user_image').src = data.picture;
-                document.getElementById('greeting_text').innerText = `Welcome back, ${data.given_name}. What shall we do?`;
+                document.getElementById('greeting_text').innerText = `Welcome back, Agent ${data.given_name}.`;
             });
         }
 
-        // --- COMMAND LOGIC ---
         async function processCommand() {
-            const input = document.getElementById('user_input').value.toLowerCase();
+            const inputField = document.getElementById('user_input');
+            const input = inputField.value.toLowerCase() || "meet"; // Default to meet if triggered by button
             const resultCard = document.getElementById('result-card');
-            const resultText = document.getElementById('result-text');
+            const resultContent = document.getElementById('result-content');
 
             if (!accessToken) {
-                alert("Please sign in first to use Hackathon PPA features.");
+                alert("Please click 'Sign In' at the top right first.");
                 return;
             }
 
+            resultCard.style.display = "block";
+            resultContent.innerHTML = "<p style='color:#94a3b8'>Processing command...</p>";
+
             if (input.includes("meet") || input.includes("meeting")) {
-                resultText.innerHTML = "Creating your secure meeting link...";
-                resultCard.style.display = "block";
                 await createGoogleMeet();
             } else {
-                resultText.innerText = "Command not recognized. Try typing 'create meeting'.";
-                resultCard.style.display = "block";
+                resultContent.innerHTML = "<p>Command not recognized. Try typing <b>'create meeting'</b>.</p>";
             }
         }
 
         async function createGoogleMeet() {
+            const resultContent = document.getElementById('result-content');
+            
             const event = {
-                'summary': 'Hackathon PPA Meeting',
-                'description': 'Generated by Hackathon Personal Productivity Assistant',
+                'summary': 'Hackathon Sync',
+                'description': 'Created by PPA',
                 'start': { 'dateTime': new Date().toISOString() },
                 'end': { 'dateTime': new Date(new Date().getTime() + 30*60000).toISOString() },
                 'conferenceData': {
@@ -250,22 +308,26 @@ Choose any domain and... build an application.
                     body: JSON.stringify(event)
                 });
 
+                if (!response.ok) {
+                    throw new Error(`Google API Error: ${response.statusText}`);
+                }
+
                 const data = await response.json();
 
                 if (data.conferenceData && data.conferenceData.entryPoints) {
                     const meetLink = data.conferenceData.entryPoints[0].uri;
-                    document.getElementById('result-text').innerHTML = 
-                        `<div style="color: #64748b; margin-bottom: 5px;">Success! Here is your room:</div>
-                         <a href="${meetLink}" target="_blank" class="meet-link">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l5-5v14l-5-5"></path><rect x="2" y="6" width="13" height="12" rx="2"></rect></svg>
-                            Join Google Meet
-                         </a>`;
+                    resultContent.innerHTML = `
+                        <p style="color: #94a3b8; font-size: 0.9rem;">MEETING SECURELY CREATED</p>
+                        <a href="${meetLink}" target="_blank" class="meet-link">
+                            🎥 Click to Join Google Meet
+                        </a>
+                    `;
                 } else {
-                    document.getElementById('result-text').innerText = "Event created, but no Meet link generated.";
+                    resultContent.innerHTML = `<p class="error-msg">Event created, but NO Meet link found. <br>Ensure "Google Calendar API" is enabled in Cloud Console.</p>`;
                 }
             } catch (error) {
                 console.error(error);
-                document.getElementById('result-text').innerText = "Error accessing Calendar API.";
+                resultContent.innerHTML = `<p class="error-msg">API Error: ${error.message}</p>`;
             }
         }
 
